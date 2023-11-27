@@ -1,0 +1,793 @@
+<!doctype html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="initial-scale=1,user-scalable=no,maximum-scale=1,width=device-width">
+        <meta name="mobile-web-app-capable" content="yes">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+		<link rel="stylesheet" href="css/L.Control.MousePosition.css">
+        <link rel="stylesheet" href="css/leaflet.css">
+        <link rel="stylesheet" href="css/qgis2web.css"><link rel="stylesheet" href="css/fontawesome-all.min.css">
+		<style>
+        html, body {
+            width: 100%;
+            height: 100%;
+            padding: 0;
+            margin: 0;
+        }
+		#parentContainer {
+			display: flex;
+			flex-direction: row;
+			height: 100%;
+			width: 100%;
+		}
+		
+		#map {
+			flex-grow: 1; /* Allows the map to fill the available space */
+			height: 100%; /* Maintain full height */
+		}
+		
+		/* Button Styling */
+		#btn2014 {
+			background-color: #131313; /* Black background */
+			color: white;           /* White text */
+			border: none;           /* No border */
+			padding: 10px 20px;     /* Padding around the text */
+			margin: 10px;           /* Margin around the buttons */
+			cursor: pointer;        /* Cursor to indicate button */
+			font-size: 16px;        /* Font size */
+			border-radius: 5px;     /* Rounded corners */
+			transition: 0.3s;       /* Transition for hover effect */
+			position: absolute;
+			top: 10px;
+			left: 140px;
+			z-index: 1500; /* Ensure it's above the map layers */
+		}
+		
+		#btn2018 {
+			background-color: #131313; /* Black background */
+			color: white;           /* White text */
+			border: none;           /* No border */
+			padding: 10px 20px;     /* Padding around the text */
+			margin: 10px;           /* Margin around the buttons */
+			cursor: pointer;        /* Cursor to indicate button */
+			font-size: 16px;        /* Font size */
+			border-radius: 5px;     /* Rounded corners */
+			transition: 0.3s;       /* Transition for hover effect */
+			position: absolute;
+			top: 10px;
+			left: 240px;
+			z-index: 1500; /* Ensure it's above the map layers */
+		}
+
+		#btn2014:hover, #btn2018:hover {
+			background-color: #333; /* Darker background on hover */
+		}
+
+
+        .leaflet-layer,
+        .leaflet-control-zoom-in,
+        .leaflet-control-zoom-out,
+        .leaflet-control-attribution {
+            filter: invert(100%) hue-rotate(180deg) brightness(95%) contrast(90%);
+        }	
+		
+		.leaflet-control-layers {
+			background-color: #333; /* Dunkler Hintergrund */
+			color: #fff; /* Helle Schriftfarbe */
+			border: 1px solid #666; /* Optional: Rand um die Legende */
+		}
+
+		.leaflet-control-layers-toggle {
+			color: #fff; /* Helle Schriftfarbe für den Legenden-Toggle-Button */
+		}
+
+		.leaflet-control-layers-list {
+			margin: 10px; /* Optional: Innenabstand für die Elemente in der Legende */
+		}
+
+		/* Style for the info container */
+		.info-container {
+			width: 350px;
+			flex-shrink: 0;
+			background-color: #131313;
+			box-shadow: 2px 0px 5px rgba(0, 0, 0, 0.5);
+			padding: 20px;
+			transition: margin-left 0.5s;
+			margin-left: -390px;
+			overflow-y: auto;
+			font-family: 'Helvetica';
+		}
+
+		/* Style for the toggle button */
+		#toggleInfoBtn {
+			background-color: #131313; /* Black background */
+			color: white;           /* White text */
+			border: none;           /* No border */
+			padding: 10px 20px;     /* Padding around the text */
+			margin: 10px;           /* Margin around the buttons */
+			cursor: pointer;        /* Cursor to indicate button */
+			font-size: 16px;        /* Font size */
+			border-radius: 5px;     /* Rounded corners */
+			transition: 0.3s;       /* Transition for hover effect */
+			position: absolute;
+			top: 10px;
+			left: 50px;
+			z-index: 1500; /* Ensure it's above the map layers */
+		}
+
+        </style>
+        <title></title>
+    </head>
+    <body>
+		<div id="parentContainer">
+		<div id="infoContainer" class="info-container" style="font-family: Helvetica; color: white;">
+        <p><h1>RISK MAP FOR HERRING SPAWNING AREAS<br></h1>
+		
+		<h2><br><br>RISK 1: Anthropogenic noise</h2>
+		<p><em>= continuous low-frequency noise </em></p>
+		<p>Anthropogenic noise creates avoidance reactions and behavioural changes in herring. Continuous noise can affect herring due to masking of important communication signals especially during spawning season.</p>
+		
+		<h2><br><br>RISK 2: Shipping density </h2>
+		<p>High maritime traffic can create physical damage on the spawning grounds of herring. For example, lifting anchors and boat propellers can lead to decline in important spawning vegetation and thereby affect the productivity of spawning. Ship waves also cause erosion and move coarse sediment particles which can damage fish eggs.</p>
+		
+		<h2><br><br>RISK 3: Fishing</h2>
+		<p>Herring fishing is usually done during spawning season in the spawning areas, and it reduces the number of spawning fish. Excessive fishing of herring can negatively affect the ecosystem of the Baltic Sea.</p>
+
+		<h2><br><br>THE MAP</h2>
+		<h3>How it was created</h3>
+		<p>This map based on different raster and vector data about the risks for herring spawning areas. Therefore all datasets were clipped to the archipelago sea and a hexagongrid were created for the same area. For each hexagon, the mean of the overlapping grid cells was calculated, and the results were normalized to a scale of 1 using Min-Max normalization:</p>
+		<style>
+		  .fraction {
+			display: inline-block;
+			text-align: center;
+			position: relative;
+		  }
+
+		  .fraction::before {
+			content: "/";
+			display: inline-block;
+			position: absolute;
+			top: 50%;
+			left: 40%;
+			transform: translate(-50%, -50%);
+		  }
+
+		  .fraction > sup, .fraction > sub {
+			position: relative;
+			z-index: 1;
+			display: inline-block;
+			font: inherit;
+		  }
+		</style>
+
+		<p style="margin-left: 20px;font-size: small;">
+		  X<sub>normalized</sub> = <span class="fraction"><sup>(X - min(X))</sup><sub>(max(X) - min(X))</sub></span>
+		</p>
+		<p>Similar procedures were applied to vector layers. For the Trapnet layer (point vector), the points per hexagon were counted and normalized to 1. The Fishing Net layer is a polygon dataset, which was converted into a raster dataset. The raster cells were counted per hexagon and normalized to 1. Subsequently, the mean of all normalized values for each hexagon was calculated and normalized to 1 as well. These values represent the risk for herring spawning areas. Zero indicates no/low risk, while one represents the highest value and thus the highest risk. The hexagonal grid is colored based on the calculated risk value. This process was conducted for the years 2014 and 2018.<p>
+		
+		<h3><br>How to use it</h3>
+		<p>The map offers various functionalities. The hexagons represent the risk value for the herring spawning areas. The hexagons are colored based on the calculated overall risk. Clicking on an individual hexagon displays the different risk values for that hexagon as a bar plot. Hovering the mouse over a bar shows the value for the selected risk. The buttons at the top-left allow switching between the years 2014 and 2018. The button at the bottom-left enables the individual toggling of layers. The legend for the different layers is located at the bottom-right. Below this button is a coordinate display."<p>
+		
+		<h2><br><br>Datasets</h2>
+		
+		<p><strong>Anthropogenic noise:</strong><p>
+		<p>The Input of continuous anthropogenic sound HOLAS 2 –dataset has data about anthropogenic sound in the Baltic Sea. The data was collected for the BIAS (Baltic Sea Information on the Acoustic Soundscape) project. The data was collected in 2014 and the dataset created in 2018.</p>
+		<p>Available under: <a href="https://metadata.helcom.fi/geonetwork/srv/eng/catalog.search#/metadata/8e73d7ab-d683-41f5-87ad-e97445e8eee5">Input of continuous anthropogenic sound HOLAS 2 (HELCOM)</a></p>
+		<p>The Input of continuous anthropogenic sound HOLAS 3 –dataset has data about anthropogenic sound in the Baltic Sea. The data for was collected for the HELCOM BLUES (Biodiversity, Litter, Underwater noise and Effective regional measures for the Baltic Sea) project. The data was collected in 2018 and the dataset created in 2023.</p>
+		<p>Available under: <a href="https://metadata.helcom.fi/geonetwork/srv/fin/catalog.search#/metadata/d1cf5bda-fed2-4f54-a3c2-af701ed3a397">Input of continuous anthropogenic sound HOLAS 3 (HELCOM)</a></p>
+		
+		<p><br><br><strong>Shipping density:</strong></p>
+		<p>The HELCOM (Helsinki Commission) AIS (Automatic Identification System) Shipping density maps –dataset has data about the density of all IMO (International Maritime Organization) registered ships operating in the Baltic Sea. The data was collected in years 2006-2022 and the dataset created in 2022.</p>
+		<p>Available under: <a href="https://metadata.helcom.fi/geonetwork/srv/eng/catalog.search#/metadata/2558244b-0cea-46e9-8053-af6ef5d01853">HELCOM AIS Shipping density maps</a></p>
+
+		<p><br><br><strong>Fishing nets & trap nets:</strong></p>
+		<p>For fishing nets and trap nets in the Archipelago Sea we used a dataset called “Tärkeät kaupalliset kalastusalueet rannikolla: rysäpyydyspaikat ja verkkokalastusalueet”. It consists of two layers and has data about important commercial fishing areas on the Finnish coast. Data for the dataset is from Luke, ELY-keskukset and Österbottens Fiskarförbund. The data was collected in the Archipelago Sea area by interviewing fishermen during years 2010-2014 and it was published in 2020. </p>
+		<p>Available under: <a href="https://ckanmtp.ymparisto.fi/dataset/90847ce4-8879-4b04-b533-177d5a1be4fa">Fishing nets and trap nets</a></p>
+		
+		<p><br><br><strong>Potential spawning areas for herring</strong></p>
+		<p>The Potential spawning areas for herring (PBS EFH) -dataset has data about the potential spawning areas of herring. EFH stands for Essential fish habitat map and PBS stands for PanBalticScope project. The EFH map was created for the PBS project. This dataset was created based on scientific literature, not on actual data about herring spawning areas. That’s why it only shows potential spawning areas. The dataset was published in 2020.</p>
+		<p>Available under: <a href="https://metadata.helcom.fi/geonetwork/srv/eng/catalog.search#/metadata/bae53d8e-a5a2-4d01-b260-54d72ad46813">Potential spawning areas for herring (PBS EFH)</a></p>
+		
+		<br><br><p style="font-size: small;">This map was created as part of the course <em>Geospatial Data Management and Visualization</em> course at the University of Turku in November 2023.</p>
+		<p style="font-size: small;">Created by: Elsa Halmajärvi, Leena Järveläinen, Sonja Rintelä, Renita Ristimäki & Sheila Tholen.</p>
+
+		</div>	
+        <div id="map">
+		<button id="toggleInfoBtn">Info</button>
+		<button id="btn2014">2014</button>
+		<button id="btn2018">2018</button>
+		</div>		
+        <script src="js/qgis2web_expressions.js"></script>
+        <script src="js/leaflet.js"></script>
+        <script src="js/leaflet-svg-shape-markers.min.js"></script>
+        <script src="js/leaflet.rotatedMarker.js"></script>
+        <script src="js/leaflet.pattern.js"></script>
+        <script src="js/leaflet-hash.js"></script>
+        <script src="js/Autolinker.min.js"></script>
+        <script src="js/rbush.min.js"></script>
+        <script src="js/labelgun.min.js"></script>
+        <script src="js/labels.js"></script>
+        <script src="data/Fishingnet_7.js"></script>
+        <script src="data/Trapnet_8.js"></script>
+        <script src="data/Risk2018_9.js"></script>
+        <script src="data/Risk2014_10.js"></script>
+        <script src="data/archipelago_11.js"></script>
+		<script src="js/L.Control.MousePosition.js"></script>
+		<script src="https://cdnjs.cloudflare.com/ajax/libs/chroma-js/2.1.0/chroma.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+        <script>
+		
+		
+        var highlightLayer;
+        function highlightFeature(e) {
+            highlightLayer = e.target;
+
+            if (e.target.feature.geometry.type === 'LineString') {
+              highlightLayer.setStyle({
+                color: '#ff4e00',
+              });
+            } else {
+              highlightLayer.setStyle({
+                fillColor: '#ff4e00',
+                fillOpacity: 1
+              });
+            }
+        }
+        var map = L.map('map', {
+			zoomSnap:0,
+			zoomDelta: 0.05,
+            zoomControl:true, maxZoom:18, minZoom:5
+        })
+        var hash = new L.Hash(map);
+        map.attributionControl.setPrefix('<a href="https://github.com/tomchadwin/qgis2web" target="_blank">qgis2web</a> &middot; <a href="https://leafletjs.com" title="A JS library for interactive maps">Leaflet</a> &middot; <a href="https://qgis.org">QGIS</a> &middot;<a href=" https://github.com/ardhi/Leaflet.MousePosition" target="_blank">Leaflet.MousePosition </a> &middot;<a href="https://www.chartjs.org/" target="_blank">© Chart.js Contributors </a>');
+        var autolinker = new Autolinker({truncate: {length: 30, location: 'smart'}});
+        var bounds_group = new L.featureGroup([]);
+		function setBounds() {
+			if (bounds_group.getLayers().length) {
+			// Karte auf den begrenzten Bereich zentrieren
+				map.setView([60.11, 21.54], 8.2);
+
+				// Den begrenzten Bereich um 10% vergrößern
+				var bounds = bounds_group.getBounds().pad(1);
+
+				// Maximal zulässigen Bereich setzen
+				map.setMaxBounds(bounds);
+			}
+		}
+		L.control.mousePosition({
+		numDigits: 2,
+		})
+		.addTo(map);
+
+
+        map.createPane('pane_OpenStreetMap_1');
+        map.getPane('pane_OpenStreetMap_1').style.zIndex = 401;
+        var layer_OpenStreetMap_1 = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            pane: 'pane_OpenStreetMap_1',
+            opacity: 1.0,
+            attribution: '<a href="https://www.openstreetmap.org/">© OpenStreetMap contributors</a>',
+            minZoom: 5,
+            maxZoom: 18,
+            minNativeZoom: 0,
+            maxNativeZoom: 19
+		});
+        map.addLayer(layer_OpenStreetMap_1);
+		
+        map.createPane('pane_Potentialspawningareasforherring_2');
+        map.getPane('pane_Potentialspawningareasforherring_2').style.zIndex = 402;
+        var img_Potentialspawningareasforherring_2 = 'data/Potentialspawningareasforherring_2.png';
+        var img_bounds_Potentialspawningareasforherring_2 = [[59.45595539135874,19.68903360560506],[60.81118090077782,23.327210506289124]];
+        var layer_Potentialspawningareasforherring_2 = new L.imageOverlay(img_Potentialspawningareasforherring_2,
+                                              img_bounds_Potentialspawningareasforherring_2,
+                                              {pane: 'pane_Potentialspawningareasforherring_2'});
+        bounds_group.addLayer(layer_Potentialspawningareasforherring_2);
+        map.createPane('pane_Anthropogenicnoise2018_3');
+        map.getPane('pane_Anthropogenicnoise2018_3').style.zIndex = 403;
+        var img_Anthropogenicnoise2018_3 = 'data/Anthropogenicnoise2018_3.png';
+        var img_bounds_Anthropogenicnoise2018_3 = [[59.45595539135874,19.68903360560506],[60.81118090077782,23.327210506289124]];
+        var layer_Anthropogenicnoise2018_3 = new L.imageOverlay(img_Anthropogenicnoise2018_3,
+                                              img_bounds_Anthropogenicnoise2018_3,
+                                              {pane: 'pane_Anthropogenicnoise2018_3'});
+        bounds_group.addLayer(layer_Anthropogenicnoise2018_3);
+        map.createPane('pane_Anthropogenicnoise2014_4');
+        map.getPane('pane_Anthropogenicnoise2014_4').style.zIndex = 404;
+        var img_Anthropogenicnoise2014_4 = 'data/Anthropogenicnoise2014_4.png';
+        var img_bounds_Anthropogenicnoise2014_4 = [[59.45595539135877,19.689033605605104],[60.81118090077785,23.327210506289166]];
+        var layer_Anthropogenicnoise2014_4 = new L.imageOverlay(img_Anthropogenicnoise2014_4,
+                                              img_bounds_Anthropogenicnoise2014_4,
+                                              {pane: 'pane_Anthropogenicnoise2014_4'});
+        bounds_group.addLayer(layer_Anthropogenicnoise2014_4);
+        map.createPane('pane_ShippingDensity2018_5');
+        map.getPane('pane_ShippingDensity2018_5').style.zIndex = 405;
+        var img_ShippingDensity2018_5 = 'data/ShippingDensity2018_5.png';
+        var img_bounds_ShippingDensity2018_5 = [[59.40462789052059,19.66508538781756],[60.929529404327525,23.37860091807404]];
+        var layer_ShippingDensity2018_5 = new L.imageOverlay(img_ShippingDensity2018_5,
+                                              img_bounds_ShippingDensity2018_5,
+                                              {pane: 'pane_ShippingDensity2018_5'});
+        bounds_group.addLayer(layer_ShippingDensity2018_5);
+        map.createPane('pane_ShippingDensity2014_6');
+        map.getPane('pane_ShippingDensity2014_6').style.zIndex = 406;
+        var img_ShippingDensity2014_6 = 'data/ShippingDensity2014_6.png';
+        var img_bounds_ShippingDensity2014_6 = [[59.40462789052059,19.66508538781756],[60.929529404327525,23.37860091807404]];
+        var layer_ShippingDensity2014_6 = new L.imageOverlay(img_ShippingDensity2014_6,
+                                              img_bounds_ShippingDensity2014_6,
+                                              {pane: 'pane_ShippingDensity2014_6'});
+        bounds_group.addLayer(layer_ShippingDensity2014_6);
+        function pop_Fishingnet_7(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+        }
+
+        function style_Fishingnet_7_0() {
+            return {
+                pane: 'pane_Fishingnet_7',
+                opacity: 1,
+                color: 'rgba(20,82,29,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1.0, 
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(33,137,49,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Fishingnet_7');
+        map.getPane('pane_Fishingnet_7').style.zIndex = 407;
+        map.getPane('pane_Fishingnet_7').style['mix-blend-mode'] = 'normal';
+        var layer_Fishingnet_7 = new L.geoJson(json_Fishingnet_7, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Fishingnet_7',
+            layerName: 'layer_Fishingnet_7',
+            pane: 'pane_Fishingnet_7',
+            onEachFeature: pop_Fishingnet_7,
+            style: style_Fishingnet_7_0,
+        });
+        bounds_group.addLayer(layer_Fishingnet_7);
+        function pop_Trapnet_8(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+        }
+
+        function style_Trapnet_8_0() {
+            return {
+                pane: 'pane_Trapnet_8',
+                radius: 6.0,
+                opacity: 1,
+                color: 'rgba(0,0,0,1.0)',
+                dashArray: '',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 1,
+                fill: true,
+                fillOpacity: 1,
+                fillColor: 'rgba(255,192,182,1.0)',
+                interactive: false,
+            }
+        }
+        map.createPane('pane_Trapnet_8');
+        map.getPane('pane_Trapnet_8').style.zIndex = 408;
+        map.getPane('pane_Trapnet_8').style['mix-blend-mode'] = 'normal';
+        var layer_Trapnet_8 = new L.geoJson(json_Trapnet_8, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_Trapnet_8',
+            layerName: 'layer_Trapnet_8',
+            pane: 'pane_Trapnet_8',
+            onEachFeature: pop_Trapnet_8,
+            pointToLayer: function (feature, latlng) {
+                var context = {
+                    feature: feature,
+                    variables: {}
+                };
+                return L.shapeMarker(latlng, style_Trapnet_8_0(feature));
+            },
+        });
+        bounds_group.addLayer(layer_Trapnet_8);
+		
+		var myChart; 
+
+		function pop_Risk2018_9(feature, layer) {
+			layer.on({
+				mouseout: function(e) {
+					for (i in e.target._eventParents) {
+						e.target._eventParents[i].resetStyle(e.target);
+					}
+				},
+				mouseover: highlightFeature,
+			});
+
+			var popupContent = '<canvas id="chart" width="250" height="250"></canvas>';
+			layer.bindPopup(popupContent, {maxHeight: 250});
+
+			layer.on('popupopen', function() {
+				setTimeout(function() {
+					var canvas = document.getElementById('chart');
+					if (canvas && canvas.getContext) {
+						var ctx = canvas.getContext('2d');
+						if (myChart) {
+							myChart.destroy(); // Destroy the existing chart instance
+						}
+						Chart.defaults.font.family = 'Helvetica';
+						var riskColor = chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab')(parseFloat(feature.properties['risk'])).hex();
+						var myChart  = new Chart(ctx, {
+							type: 'bar', // or 'line', 'pie', etc.
+							data: {
+								labels: ['Fishnet', 'Trapnet', 'Anthropogenic noise', 'Ship density', 'Overall risk'],
+								datasets: [{
+									data: [
+										feature.properties['fishnet_n'],
+										feature.properties['trap_net_n'],
+										feature.properties['noise_n'],
+										feature.properties['ship_n'],
+										feature.properties['risk']
+									],
+									backgroundColor: [
+										'#131313',
+										'#131313',
+										'#131313',
+										'#131313',
+										riskColor // Set risk bar color
+									],
+									borderColor: [
+										// Define border colors for each bar here
+									],
+									borderWidth: 0
+								}]
+							},
+							options: {
+								scales: {
+									y: {
+										beginAtZero: true
+									}
+								},
+								plugins: {
+									legend: {
+										display: false
+									}
+							}
+							}
+						});
+					}
+				}, 300); // Adjust the delay as needed
+			});
+		}
+
+
+        function style_Risk2018_9_0(feature) {
+			var riskValue = parseFloat(feature.properties['risk']);
+
+			return {
+				pane: 'pane_Risk2018_9',
+				opacity: 1,
+				color: 'rgba(255,255,255,1.0)',
+				dashArray: '',
+				lineCap: 'butt',
+				lineJoin: 'miter',
+				weight: 1,
+				fill: true,
+				fillOpacity: 1,
+				fillColor: chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab')(riskValue).hex(),
+				interactive: true,
+			};
+		}
+        map.createPane('pane_Risk2018_9');
+        map.getPane('pane_Risk2018_9').style.zIndex = 409;
+        map.getPane('pane_Risk2018_9').style['mix-blend-mode'] = 'normal';
+        var layer_Risk2018_9 = new L.geoJson(json_Risk2018_9, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Risk2018_9',
+            layerName: 'layer_Risk2018_9',
+            pane: 'pane_Risk2018_9',
+            onEachFeature: pop_Risk2018_9,
+            style: style_Risk2018_9_0,
+        });
+        bounds_group.addLayer(layer_Risk2018_9);
+        map.addLayer(layer_Risk2018_9);
+		
+		function pop_Risk2014_10(feature, layer) {
+			layer.on({
+				mouseout: function(e) {
+					for (i in e.target._eventParents) {
+						e.target._eventParents[i].resetStyle(e.target);
+					}
+				},
+				mouseover: highlightFeature,
+			});
+
+			var popupContent = '<canvas id="chart" width="250" height="250"></canvas>';
+			layer.bindPopup(popupContent, {maxHeight: 250});
+
+			layer.on('popupopen', function() {
+				setTimeout(function() {
+					var canvas = document.getElementById('chart');
+					if (canvas && canvas.getContext) {
+						var ctx = canvas.getContext('2d');
+						if (myChart) {
+							myChart.destroy(); // Destroy the existing chart instance
+						}
+						Chart.defaults.font.family = 'Helvetica';
+						var riskColor = chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab')(parseFloat(feature.properties['risk'])).hex();
+						var myChart  = new Chart(ctx, {
+							type: 'bar', // or 'line', 'pie', etc.
+							data: {
+								labels: ['Fishnet', 'Trapnet', 'Anthropogenic noise', 'Ship density', 'Overall risk'],
+								datasets: [{
+									data: [
+										feature.properties['fishnet_n'],
+										feature.properties['trap_net_n'],
+										feature.properties['noise_n'],
+										feature.properties['ship_n'],
+										feature.properties['risk']
+									],
+									backgroundColor: [
+										'#131313',
+										'#131313',
+										'#131313',
+										'#131313',
+										riskColor // Set risk bar color
+									],
+									borderColor: [
+										// Define border colors for each bar here
+									],
+									borderWidth: 0
+								}]
+							},
+							options: {
+								scales: {
+									y: {
+										beginAtZero: true
+									}
+								},
+								plugins: {
+									legend: {
+										display: false
+									}
+							}
+							}
+						});
+					}
+				}, 300); // Adjust the delay as needed
+			});
+		}
+
+        function style_Risk2014_10_0(feature) {
+			var riskValue = parseFloat(feature.properties['risk']);
+
+			return {
+				pane: 'pane_Risk2018_9',
+				opacity: 1,
+				color: 'rgba(255,255,255,1.0)',
+				dashArray: '',
+				lineCap: 'butt',
+				lineJoin: 'miter',
+				weight: 1,
+				fill: true,
+				fillOpacity: 1,
+				fillColor: chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab')(riskValue).hex(),
+				interactive: true,
+			};
+		}
+        map.createPane('pane_Risk2014_10');
+        map.getPane('pane_Risk2014_10').style.zIndex = 410;
+        map.getPane('pane_Risk2014_10').style['mix-blend-mode'] = 'normal';
+        var layer_Risk2014_10 = new L.geoJson(json_Risk2014_10, {
+            attribution: '',
+            interactive: true,
+            dataVar: 'json_Risk2014_10',
+            layerName: 'layer_Risk2014_10',
+            pane: 'pane_Risk2014_10',
+            onEachFeature: pop_Risk2014_10,
+            style: style_Risk2014_10_0,
+        });
+        bounds_group.addLayer(layer_Risk2014_10);
+        map.addLayer(layer_Risk2014_10);
+        function pop_archipelago_11(feature, layer) {
+            layer.on({
+                mouseout: function(e) {
+                    for (i in e.target._eventParents) {
+                        e.target._eventParents[i].resetStyle(e.target);
+                    }
+                },
+                mouseover: highlightFeature,
+            });
+        }
+
+        function style_archipelago_11_0() {
+            return {
+                pane: 'pane_archipelago_11',
+                opacity: 1,
+                color: 'rgba(255,93,0,1.0)',
+                dashArray: '10,5',
+                lineCap: 'butt',
+                lineJoin: 'miter',
+                weight: 2.0, 
+                fillOpacity: 0,
+                interactive: false,
+            }
+        }
+        map.createPane('pane_archipelago_11');
+        map.getPane('pane_archipelago_11').style.zIndex = 411;
+        map.getPane('pane_archipelago_11').style['mix-blend-mode'] = 'normal';
+        var layer_archipelago_11 = new L.geoJson(json_archipelago_11, {
+            attribution: '',
+            interactive: false,
+            dataVar: 'json_archipelago_11',
+            layerName: 'layer_archipelago_11',
+            pane: 'pane_archipelago_11',
+            onEachFeature: pop_archipelago_11,
+            style: style_archipelago_11_0,
+        });
+        bounds_group.addLayer(layer_archipelago_11);
+        map.addLayer(layer_archipelago_11);
+		
+		document.getElementById('btn2014').addEventListener('click', function() {
+			if (map.hasLayer(layer_Risk2018_9)) {
+                map.removeLayer(layer_Risk2018_9);
+				map.addLayer(layer_Risk2014_10);
+            }
+			if (map.hasLayer(layer_ShippingDensity2018_5)) {
+                map.removeLayer(layer_ShippingDensity2018_5);
+				map.addLayer(layer_ShippingDensity2014_6);
+            }
+			if (map.hasLayer(layer_Anthropogenicnoise2018_3)) {
+                map.removeLayer(layer_Anthropogenicnoise2018_3);
+				map.addLayer(layer_Anthropogenicnoise2014_4);
+            }
+		});
+
+		document.getElementById('btn2018').addEventListener('click', function() {
+			if (map.hasLayer(layer_Risk2014_10)) {
+                map.removeLayer(layer_Risk2014_10);
+				map.addLayer(layer_Risk2018_9);
+            }
+			if (map.hasLayer(layer_ShippingDensity2014_6)) {
+                map.removeLayer(layer_ShippingDensity2014_6);
+				map.addLayer(layer_ShippingDensity2018_5);
+            }
+			if (map.hasLayer(layer_Anthropogenicnoise2014_4)) {
+                map.removeLayer(layer_Anthropogenicnoise2014_4);
+				map.addLayer(layer_Anthropogenicnoise2018_3);
+            }
+		});
+
+		var legend = L.control({ position: 'bottomright' });
+
+		legend.onAdd = function (map) {
+			var div = L.DomUtil.create('div', 'info legend'),
+				riskScale = chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab'),
+				shDensity = chroma.scale(['#fcfbfd', '#bcbddc', '#807dba', '#3f007d']).mode('lab'),
+				anthNoise = chroma.scale(['#e4fff4', '#046974']).mode('lab'),
+				herring1 = '#e2e2ff',
+				herring2 = '#0100ff',
+				archi_c = '#ff5d00';
+
+			var gradient1 = '<div style="background: linear-gradient(to right, ' +
+				riskScale(0).hex() + ', ' + riskScale(1).hex() +
+				'); height: 15px; width: 100%;"></div>';
+
+			var gradient2 = '<div style="background: linear-gradient(to right, ' +
+				shDensity(0).hex() + ', ' + shDensity(1).hex() +
+				'); height: 15px; width: 100%;"></div>';
+
+			var gradient3 = '<div style="background: linear-gradient(to right, ' +
+				anthNoise(0).hex() + ', ' + anthNoise(1).hex() +
+				'); height: 15px; width: 100%;"></div>';
+			
+			var herring = '<div style="width: 20%; display: inline-block; margin-right: -4px; vertical-align: top;">' +
+				'<div style="background-color: ' + herring1 + '; height: 15px; width: 50%;"></div>' +
+				'<div style="background-color: ' + herring2 + '; height: 15px; width: 50%;"></div>' +
+				'</div>' +
+				'<div style="width: 80%; display: inline-block; vertical-align: top; margin-left: -5px;">' +
+				'<div style="margin-bottom: -2px;">Potential spawning areas</div>' +
+				'<div>High probability spawning areas</div>' +
+				'</div>';
+				
+			var archi = '<div style="width: 100%; display: flex;">' +
+				'<div style="height: 4px; width: 20%; ' +
+				'background: repeating-linear-gradient(90deg, ' + archi_c + ' 0, ' + archi_c + ' 5px, transparent 10px, transparent 10px);"></div>' +
+				// Füge hier weitere Informationen oder Text zur Legende hinzu
+				'</div>';
+				
+			div.style.lineHeight = '1.5';
+			div.style.width = '52%';
+			div.style.backgroundColor = 'rgba(19, 19, 19, 0.8)';
+			div.style.color = 'white';
+			div.style.marginTop = '100px'; 
+			div.style.padding = '10px';
+			div.style.fontFamily = 'Helvetica';
+			div.style.fontSize = '11.5px';
+
+			div.innerHTML += '<div><b>Risk</b></div>' +
+				gradient1 +
+				'<div style="float: left; text-align: left;">Low</div>' +
+				'<div style="float: right; text-align: right;">High</div>' +
+				'<br>' +
+				'<br>' +
+				'<div><b>Shipping density</b></div>' +
+				gradient2 +
+				'<div style="float: left; text-align: left;">Low</div>' +
+				'<div style="float: right; text-align: right;">High</div>' +
+				'<br>' +
+				'<br>' +
+				'<div><b>Anthropogenic noise</b></div>' +
+				gradient3 +
+				'<div style="float: left; text-align: left;">Low</div>' +
+				'<div style="float: right; text-align: right;">High</div>' +
+				'<br>' +
+				'<br>' +
+				'<div><b>Potential spawning areas</b></div>' +
+				herring +
+				'<br>' +
+				'<br>' +
+				'<div><b>Boundary Archipelago</b></div>' +
+				archi;				
+
+			return div;
+		};
+
+		legend.addTo(map);
+		
+		// Define overlay layers
+		var overlayLayers = {
+			"Risk 2014": layer_Risk2014_10,
+			"Risk 2018": layer_Risk2018_9,
+			"Trapnet": layer_Trapnet_8,
+			"Fishnet": layer_Fishingnet_7,
+			"Shipping Density 2014": layer_ShippingDensity2014_6,
+			"Shipping Density 2018": layer_ShippingDensity2018_5,
+			"Anthropogenic noise 2014": layer_Anthropogenicnoise2014_4,
+			"Anthropogenic noise 2018": layer_Anthropogenicnoise2018_3,
+			"Potential spawning areas": layer_Potentialspawningareasforherring_2,
+			"Boundary Archipelago": layer_archipelago_11,
+		};
+
+		// Define base maps
+		var baseMaps = {
+			"OpenStreetMap": layer_OpenStreetMap_1
+		};
+
+		// Create layer control
+		var layerControl = L.control.layers(baseMaps, overlayLayers, { position: 'bottomleft' });
+		layerControl.addTo(map);
+	
+		layer_Risk2018_9.addTo(map);
+		
+		setBounds();
+		L.ImageOverlay.include({
+            getBounds: function () {
+                return this._bounds;
+            }
+        });
+		
+		document.getElementById('toggleInfoBtn').addEventListener('click', function() {
+			var infoContainer = document.getElementById('infoContainer');
+			if (infoContainer.style.marginLeft === '0px') {
+				infoContainer.style.marginLeft = '-390px'; // Hide container
+			} else {
+				infoContainer.style.marginLeft = '0px'; // Show container
+			}
+		});
+		
+		map.invalidateSize()
+
+        </script>
+    </body>
+</html>

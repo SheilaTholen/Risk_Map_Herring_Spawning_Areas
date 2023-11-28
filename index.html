@@ -24,45 +24,44 @@
 		}
 		
 		#map {
-			flex-grow: 1; /* Allows the map to fill the available space */
-			height: 100%; /* Maintain full height */
+			flex-grow: 1;
+			height: 100%;
 		}
-		
-		/* Button Styling */
+
 		#btn2014 {
-			background-color: #131313; /* Black background */
-			color: white;           /* White text */
-			border: none;           /* No border */
-			padding: 10px 20px;     /* Padding around the text */
-			margin: 10px;           /* Margin around the buttons */
-			cursor: pointer;        /* Cursor to indicate button */
-			font-size: 16px;        /* Font size */
-			border-radius: 5px;     /* Rounded corners */
-			transition: 0.3s;       /* Transition for hover effect */
+			background-color: #131313;
+			color: white; 
+			border: none; 
+			padding: 10px 20px;
+			margin: 10px;
+			cursor: pointer; 
+			font-size: 16px;   
+			border-radius: 5px;
+			transition: 0.3s; 
 			position: absolute;
 			top: 10px;
 			left: 140px;
-			z-index: 1500; /* Ensure it's above the map layers */
+			z-index: 1500; 
 		}
 		
 		#btn2018 {
-			background-color: #131313; /* Black background */
-			color: white;           /* White text */
-			border: none;           /* No border */
-			padding: 10px 20px;     /* Padding around the text */
-			margin: 10px;           /* Margin around the buttons */
-			cursor: pointer;        /* Cursor to indicate button */
-			font-size: 16px;        /* Font size */
-			border-radius: 5px;     /* Rounded corners */
-			transition: 0.3s;       /* Transition for hover effect */
+			background-color: #131313;
+			color: white;    
+			border: none;       
+			padding: 10px 20px;
+			margin: 10px; 
+			cursor: pointer;
+			font-size: 16px; 
+			border-radius: 5px;
+			transition: 0.3s;   
 			position: absolute;
 			top: 10px;
 			left: 240px;
-			z-index: 1500; /* Ensure it's above the map layers */
+			z-index: 1500; 
 		}
 
 		#btn2014:hover, #btn2018:hover {
-			background-color: #333; /* Darker background on hover */
+			background-color: #333;
 		}
 
 
@@ -74,20 +73,19 @@
         }	
 		
 		.leaflet-control-layers {
-			background-color: #333; /* Dunkler Hintergrund */
-			color: #fff; /* Helle Schriftfarbe */
-			border: 1px solid #666; /* Optional: Rand um die Legende */
+			background-color: #333; 
+			color: #fff; 
+			border: 1px solid #666;
 		}
 
 		.leaflet-control-layers-toggle {
-			color: #fff; /* Helle Schriftfarbe für den Legenden-Toggle-Button */
+			color: #fff;
 		}
 
 		.leaflet-control-layers-list {
-			margin: 10px; /* Optional: Innenabstand für die Elemente in der Legende */
+			margin: 10px;
 		}
 
-		/* Style for the info container */
 		.info-container {
 			width: 350px;
 			flex-shrink: 0;
@@ -100,21 +98,20 @@
 			font-family: 'Helvetica';
 		}
 
-		/* Style for the toggle button */
 		#toggleInfoBtn {
-			background-color: #131313; /* Black background */
-			color: white;           /* White text */
-			border: none;           /* No border */
-			padding: 10px 20px;     /* Padding around the text */
-			margin: 10px;           /* Margin around the buttons */
-			cursor: pointer;        /* Cursor to indicate button */
-			font-size: 16px;        /* Font size */
-			border-radius: 5px;     /* Rounded corners */
-			transition: 0.3s;       /* Transition for hover effect */
+			background-color: #131313; 
+			color: white;
+			border: none; 
+			padding: 10px 20px; 
+			margin: 10px; 
+			cursor: pointer;  
+			font-size: 16px; 
+			border-radius: 5px;
+			transition: 0.3s;   
 			position: absolute;
 			top: 10px;
 			left: 50px;
-			z-index: 1500; /* Ensure it's above the map layers */
+			z-index: 1500; 
 		}
 
         </style>
@@ -190,7 +187,7 @@
 		<p>The Potential spawning areas for herring (PBS EFH) -dataset has data about the potential spawning areas of herring. EFH stands for Essential fish habitat map and PBS stands for PanBalticScope project. The EFH map was created for the PBS project. This dataset was created based on scientific literature, not on actual data about herring spawning areas. That’s why it only shows potential spawning areas. The dataset was published in 2020.</p>
 		<p>Available under: <a href="https://metadata.helcom.fi/geonetwork/srv/eng/catalog.search#/metadata/bae53d8e-a5a2-4d01-b260-54d72ad46813">Potential spawning areas for herring (PBS EFH)</a></p>
 		
-		<br><br><p style="font-size: small;">This map was created as part of the course <em>Geospatial Data Management and Visualization</em> course at the University of Turku in November 2023.</p>
+		<br><br><p style="font-size: small;">This map was created as part of the course <em>Geospatial Data Management and Visualization</em> at the University of Turku in November 2023.</p>
 		<p style="font-size: small;">Created by: Elsa Halmajärvi, Leena Järveläinen, Sonja Rintelä, Renita Ristimäki & Sheila Tholen.</p>
 
 		</div>	
@@ -246,13 +243,8 @@
         var bounds_group = new L.featureGroup([]);
 		function setBounds() {
 			if (bounds_group.getLayers().length) {
-			// Karte auf den begrenzten Bereich zentrieren
 				map.setView([60.11, 21.54], 8.2);
-
-				// Den begrenzten Bereich um 10% vergrößern
 				var bounds = bounds_group.getBounds().pad(1);
-
-				// Maximal zulässigen Bereich setzen
 				map.setMaxBounds(bounds);
 			}
 		}
@@ -422,12 +414,12 @@
 					if (canvas && canvas.getContext) {
 						var ctx = canvas.getContext('2d');
 						if (myChart) {
-							myChart.destroy(); // Destroy the existing chart instance
+							myChart.destroy();
 						}
 						Chart.defaults.font.family = 'Helvetica';
 						var riskColor = chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab')(parseFloat(feature.properties['risk'])).hex();
 						var myChart  = new Chart(ctx, {
-							type: 'bar', // or 'line', 'pie', etc.
+							type: 'bar',
 							data: {
 								labels: ['Fishnet', 'Trapnet', 'Anthropogenic noise', 'Ship density', 'Overall risk'],
 								datasets: [{
@@ -443,11 +435,9 @@
 										'#131313',
 										'#131313',
 										'#131313',
-										riskColor // Set risk bar color
+										riskColor
 									],
-									borderColor: [
-										// Define border colors for each bar here
-									],
+									borderColor: [],
 									borderWidth: 0
 								}]
 							},
@@ -465,7 +455,7 @@
 							}
 						});
 					}
-				}, 300); // Adjust the delay as needed
+				}, 300);
 			});
 		}
 
@@ -521,12 +511,12 @@
 					if (canvas && canvas.getContext) {
 						var ctx = canvas.getContext('2d');
 						if (myChart) {
-							myChart.destroy(); // Destroy the existing chart instance
+							myChart.destroy();
 						}
 						Chart.defaults.font.family = 'Helvetica';
 						var riskColor = chroma.scale(['#edf8fb', '#b3cde3', '#8c96c6', '#8856a7', '#810f7c']).mode('lab')(parseFloat(feature.properties['risk'])).hex();
 						var myChart  = new Chart(ctx, {
-							type: 'bar', // or 'line', 'pie', etc.
+							type: 'bar',
 							data: {
 								labels: ['Fishnet', 'Trapnet', 'Anthropogenic noise', 'Ship density', 'Overall risk'],
 								datasets: [{
@@ -542,11 +532,9 @@
 										'#131313',
 										'#131313',
 										'#131313',
-										riskColor // Set risk bar color
+										riskColor
 									],
-									borderColor: [
-										// Define border colors for each bar here
-									],
+									borderColor: [],
 									borderWidth: 0
 								}]
 							},
@@ -564,7 +552,7 @@
 							}
 						});
 					}
-				}, 300); // Adjust the delay as needed
+				}, 300);
 			});
 		}
 
@@ -703,7 +691,6 @@
 			var archi = '<div style="width: 100%; display: flex;">' +
 				'<div style="height: 4px; width: 20%; ' +
 				'background: repeating-linear-gradient(90deg, ' + archi_c + ' 0, ' + archi_c + ' 5px, transparent 10px, transparent 10px);"></div>' +
-				// Füge hier weitere Informationen oder Text zur Legende hinzu
 				'</div>';
 				
 			div.style.lineHeight = '1.5';
@@ -744,8 +731,6 @@
 		};
 
 		legend.addTo(map);
-		
-		// Define overlay layers
 		var overlayLayers = {
 			"Risk 2014": layer_Risk2014_10,
 			"Risk 2018": layer_Risk2018_9,
@@ -759,12 +744,10 @@
 			"Boundary Archipelago": layer_archipelago_11,
 		};
 
-		// Define base maps
 		var baseMaps = {
 			"OpenStreetMap": layer_OpenStreetMap_1
 		};
 
-		// Create layer control
 		var layerControl = L.control.layers(baseMaps, overlayLayers, { position: 'bottomleft' });
 		layerControl.addTo(map);
 	
@@ -780,9 +763,9 @@
 		document.getElementById('toggleInfoBtn').addEventListener('click', function() {
 			var infoContainer = document.getElementById('infoContainer');
 			if (infoContainer.style.marginLeft === '0px') {
-				infoContainer.style.marginLeft = '-390px'; // Hide container
+				infoContainer.style.marginLeft = '-390px';
 			} else {
-				infoContainer.style.marginLeft = '0px'; // Show container
+				infoContainer.style.marginLeft = '0px';
 			}
 		});
 		
